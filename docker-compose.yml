@@ -1,0 +1,94 @@
+version: '3'
+services:
+  postgres:
+    image: timescale/timescaledb-postgis:latest-pg12
+    hostname: postgres
+    environment:
+      POSTGRES_PASSWORD: mysecretpassword
+    labels:
+      name: postgres
+    ports:
+      - '5432:5432'
+    volumes:
+      - './postgres/data:/var/lib/postgresql/data:rw'
+    networks:
+      - tsv-network
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    labels:
+      name: pgadmin
+    ports:
+      - '7050:80'
+    depends_on:
+      - postgres
+    environment:
+      PGADMIN_DEFAULT_EMAIL: 'husseinkatana17@gmail.com'
+      PGADMIN_DEFAULT_PASSWORD: 'password'
+    networks:
+      - tsv-network
+
+
+  redis:
+    image: redis
+    hostname: redis:latest
+    labels:
+      name: redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - '/home/hussein/Docker-file/redis:/data'
+    networks:
+      - tsv-network
+
+  redis-commander:
+    image: 'rediscommander/redis-commander:latest'
+    hostname: redis-commander
+    labels:
+      name: redis-commander
+    depends_on:
+      - redis
+    environment:
+      - 'REDIS_HOSTS=local:redis:6379'
+    ports:
+      - '8081:8081'
+    networks:
+      - tsv-network
+
+  nginx:
+    image: nginx:latest
+    hostname: nginx
+    labels:
+      name: nginx
+    ports:
+      - '3000:80'
+    volumes:
+      - './nginx/www:/usr/share/nginx/html:rw'
+      - './nginx/default.conf:/etc/nginx/conf.d/default.conf:ro'
+    networks:
+      - tsv-network
+
+  rabbitmq:
+    image: rabbitmq:latest
+    hostname: rabbitmq
+    environment:
+      RABBITMQ_ERLANG_COOKIE: SWQOKODSQALRPCLNMEQG
+      RABBITMQ_DEFAULT_USER: rabbitmq
+      RABBITMQ_DEFAULT_PASS: rabbitmq
+      RABBITMQ_DEFAULT_VHOST: /
+    ports:
+      - '15672:15672'
+      - '5672:5672'
+      - '1883:1883'
+      - '15675:15675'
+    labels:
+      name: rabbitmq
+    volumes:
+      - '/home/hussein/Docker-file/enabled_plugins:/etc/rabbitmq/enabled_plugins:rw'
+    networks:
+      - tsv-network
+    
+
+networks:
+  tsv-network: null 
+    
+
